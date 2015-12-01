@@ -40,7 +40,8 @@ module ProcessMod(
 	 output [4:0] test3,
 	 output [4:0] test4,
 	 output [4:0] test5,
-	 output [4:0] test6
+	 output [4:0] test6,
+	 output [4:0] test7
     );
 	//Left and right audio out of frequency modules
 	wire [17:0] l_audio_out_t;
@@ -74,6 +75,8 @@ module ProcessMod(
 	wire [4:0] test5l;
 	wire [4:0] test5r;
 	wire [4:0] test6l;
+	wire [4:0] test6r;
+	wire [4:0] test7l;
 	wire [4:0] test7r;
 	
 	// output frequency weights to hex display
@@ -83,6 +86,7 @@ module ProcessMod(
 	assign test4 = test4l;
 	assign test5 = test5l;
 	assign test6 = test6l;
+	assign test7 = test7l;
 	
 	//Instantiate frequency modules for left and right channels
 	FreqMod FreqL(.audio_in(l_audio_out_t),.ready(ready),.clock(clock),
@@ -91,14 +95,14 @@ module ProcessMod(
 						.freq4(l_f_f4_out),.freq5(l_f_f5_out),.freq6(l_f_f6_out),
 						.freq7(l_f_f7_out),.weight1(test1l),.weight2(test2l),
 						.weight3(test3l),.weight4(test4l),.weight5(test5l),
-						.weight6(test6l));
+						.weight6(test6l),.weight7(test7l));
 	FreqMod FreqR(.audio_in(r_audio_out_t),.ready(ready),.clock(clock),
 						.reset(reset),.controls(f_controls),.audio_out(r_audio_out),
 						.freq1(r_f_f1_out),.freq2(r_f_f2_out),.freq3(r_f_f3_out),
 						.freq4(r_f_f4_out),.freq5(r_f_f5_out),.freq6(r_f_f6_out),
 						.freq7(r_f_f7_out),.weight1(test1r),.weight2(test2r),
 						.weight3(test3r),.weight4(test4r),.weight5(test5r),
-						.weight6(test6r));
+						.weight6(test6r),.weight7(test7r));
 	//TBD outputting mixture of frequency data from left and right channels for mixer
 	
 	//Instantiate time modules for left and right channels

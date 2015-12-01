@@ -612,6 +612,7 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 	wire [4:0] test4;
 	wire [4:0] test5;
 	wire [4:0] test6;
+	wire [4:0] test7;
 	
    //High Level FSM
 	HighLevelFSM HLFSM(.clock(clock_27mhz),.reset(reset),
@@ -634,11 +635,12 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 			 .freq3(freq_data[23:16]),.freq4(freq_data[31:24]),
 			 .freq5(freq_data[39:32]),.freq6(freq_data[47:40]),
 			 .freq7(freq_data[55:48]),.test1(test1),.test2(test2),
-			 .test3(test3),.test4(test4),.test5(test5),.test6(test6));
+			 .test3(test3),.test4(test4),.test5(test5),.test6(test6),
+			 .test7(test7));
    
 	display_16hex disp(reset, clock_27mhz,
-			{3'b0,test6,3'b0,test5,3'b0,test4,3'b0,test3,
-			3'b0,test2,3'b0,test1}, // 64 bits to output to hex display
+			{3'b0,test7,3'b0,test6,3'b0,test5,3'b0,test4,3'b0,test3,
+			3'b0,test2,3'b0,test1}, // bits to output to hex display
 		
 			disp_blank, disp_clock, disp_rs, disp_ce_b,
 			disp_reset_b, disp_data_out);

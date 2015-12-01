@@ -37,7 +37,8 @@ module FreqMod(
 	 output wire [4:0] weight3,
 	 output wire [4:0] weight4,
 	 output wire [4:0] weight5,
-	 output wire [4:0] weight6
+	 output wire [4:0] weight6,
+	 output wire [4:0] weight7
     );
 	
 	wire [7:0] switches = controls[7:0];
@@ -141,18 +142,20 @@ wire signed[17:0] weighted_freq3;
 wire signed[17:0] weighted_freq4;
 wire signed[17:0] weighted_freq5;
 wire signed[17:0] weighted_freq6;
+wire signed[17:0] weighted_freq_allpass;
 
 //wire [4:0] weight1;
 equalizer equalize(.ready(ready),.clock(clock),.reset(reset),
 					.controls(controls),.audio_allpass(full_freq_allpass),
 					.full_freq1(full_freq1),.full_freq2(full_freq2),.full_freq3(full_freq3),
 					.full_freq4(full_freq4),.full_freq5(full_freq5),.full_freq6(full_freq6),
-					.audio_out(equalizer_output),
+					.full_freq7(full_freq_allpass),.audio_out(equalizer_output),
 					.weight1(weight1),.weight2(weight2),.weight3(weight3),
-					.weight4(weight4),.weight5(weight5),.weight6(weight6),
+					.weight4(weight4),.weight5(weight5),.weight6(weight6),.weight7(weight7),
 					.weighted_freq1(weighted_freq1),.weighted_freq2(weighted_freq2),
 					.weighted_freq3(weighted_freq3),.weighted_freq4(weighted_freq4),
-					.weighted_freq5(weighted_freq5),.weighted_freq6(weighted_freq6));
+					.weighted_freq5(weighted_freq5),.weighted_freq6(weighted_freq6),
+					.weighted_freq7(weighted_freq_allpass));
 
 ///////////////////////////////////////////////////////////////////////
 // controls
@@ -171,7 +174,8 @@ equalizer equalize(.ready(ready),.clock(clock),.reset(reset),
 			8'b0000_1000: reg_audio_out = weighted_freq4;
 			8'b0001_0000: reg_audio_out = weighted_freq5;
 			8'b0010_0000: reg_audio_out = weighted_freq6;
-			8'b0100_0000: reg_audio_out = full_freq_allpass;
+//			8'b0100_0000: reg_audio_out = full_freq_allpass;
+			8'b0100_0000: reg_audio_out = weighted_freq_allpass;
 			default: reg_audio_out = equalizer_output; // all pass applied
 		endcase
 	end
@@ -194,6 +198,7 @@ module equalizer (
     input wire [17:0] full_freq4,
     input wire [17:0] full_freq5,
     input wire [17:0] full_freq6,
+	 input wire [17:0] full_freq7,
 	 
 	 output wire signed [17:0] audio_out, // I made this signed,
 	 output reg [4:0] weight1, // output to hex display for debugging
@@ -202,13 +207,14 @@ module equalizer (
 	 output reg [4:0] weight4,
 	 output reg [4:0] weight5,
 	 output reg [4:0] weight6,
+	 output reg [4:0] weight7,
 	 output reg signed[17:0] weighted_freq1,
 	 output reg signed[17:0] weighted_freq2,
 	 output reg signed[17:0] weighted_freq3,
 	 output reg signed[17:0] weighted_freq4,
 	 output reg signed[17:0] weighted_freq5,
-	 output reg signed[17:0] weighted_freq6
-	 
+	 output reg signed[17:0] weighted_freq6,
+	 output reg signed[17:0] weighted_freq7
 );
 
 	reg signed [17:0] reg_audio_out;
@@ -246,12 +252,13 @@ module equalizer (
 			old_fup <= 0;
 			old_fdown <= 0;
 			weight_allpass <= 5'd24;
-			weight1 <= 5'd9;
-			weight2 <= 5'd3;
-			weight3 <= 5'd3;
-			weight4 <= 5'd3;
-			weight5 <= 5'd3;
-			weight6 <= 5'd3;
+			weight1 <= 5'd5;
+			weight2 <= 5'd5;
+			weight3 <= 5'd0;
+			weight4 <= 5'd0;
+			weight5 <= 5'd0;
+			weight6 <= 5'd0;
+			weight7 <= 5'd6;
 		end
 
 		else begin
@@ -261,10 +268,10 @@ module equalizer (
 			weighted_freq4 <= weight4*full_freq4;
 			weighted_freq5 <= weight5*full_freq5;
 			weighted_freq6 <= weight6*full_freq6;
+			weighted_freq7 <= weight7*full_freq7; // all pass, don't add to reg_audio_out
 
 			reg_audio_out <= audio_allpass+weighted_freq1+weighted_freq2+weighted_freq3
 									+weighted_freq4+weighted_freq5+weighted_freq6;
-//			reg_audio_out <= weighted_freq2;
 
 			if(switches[0]) begin
 				if (increment & weight1 != 5'd31) weight1 <= weight1+1;       
@@ -294,6 +301,11 @@ module equalizer (
 			if(switches[5]) begin
 				if (increment & weight6 != 5'd31) weight6 <= weight6+1;       
 				if (decrement & weight6 != 5'd0) weight6 <= weight6-1;       
+			end	
+
+			if(switches[6]) begin
+				if (increment & weight7 != 5'd31) weight7 <= weight7+1;       
+				if (decrement & weight7 != 5'd0) weight7 <= weight7-1;       
 			end	
 
 		end
