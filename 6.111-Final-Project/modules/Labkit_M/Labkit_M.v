@@ -598,6 +598,8 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
      old_vup <= vup;
      old_vdown <= vdown;
    end
+	wire [17:0] process_out_l; // output of process module, input of mixer
+	wire [17:0] process_out_r; // output of process module, input of mixer
 	wire [17:0] for_ac97_l;
 	wire [17:0] for_ac97_r;
 	wire [9:0] f_controls;
@@ -620,6 +622,10 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 	wire do_play;
 	wire writemode;
 	
+	// mixer weights
+	wire [4:0] mixer_weight1;
+	wire [4:0] mixer_weight2;
+	
    //High Level FSM
 	HighLevelFSM HLFSM(.clock(clock_27mhz),.reset(reset),
 							.controls({bl,br,enter,b3,b2,b1,b0,switch7,
@@ -637,13 +643,24 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 	ProcessMod process(.clock(clock_27mhz),.reset(reset),.ready(ready),
 			 .l_audio_in(from_ac97_data_l),.r_audio_in(from_ac97_data_r),
 			 .f_controls(f_controls),.t_controls(t_controls),
-			 .l_audio_out(for_ac97_l),.r_audio_out(for_ac97_r),
+			 .l_audio_out(process_out_l),.r_audio_out(process_out_r),
 			 .freq1(freq_data[7:0]),.freq2(freq_data[15:8]),
 			 .freq3(freq_data[23:16]),.freq4(freq_data[31:24]),
 			 .freq5(freq_data[39:32]),.freq6(freq_data[47:40]),
 			 .freq7(freq_data[55:48]),.test1(test1),.test2(test2),
 			 .test3(test3),.test4(test4),.test5(test5),.test6(test6),
 			 .test7(test7));
+
+	wire fup;
+	wire fdown;
+	mixer_buffer mix_audio(.clock(clock_27mhz),.ready(ready),.reset(reset),
+				.audio_in_left1(process_out_l),.audio_in_left2(18'b0),
+				// for the moment, pass audio into both sides of mixer
+				.audio_in_right1(process_out_r),.audio_in_right2(18'b0),
+				.audio_out_left(for_ac97_l),.audio_out_right(for_ac97_r),
+				.controls(m_controls),.weight1(mixer_weight1),.freq_data(freq_data),
+				.weight2(mixer_weight2),
+				.fup(fup),.fdown(fdown));
 			 
 	wire [17:0] test_left;
 	wire [17:0] test_right;	
@@ -668,8 +685,10 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 //			disp_reset_b, disp_data_out);
 	
 	display_16hex disp(reset, clock_27mhz,
-			{3'b0,test7,3'b0,test6,3'b0,test5,3'b0,test4,3'b0,test3,
-			3'b0,test2,3'b0,test1}, // bits to output to hex display
+			{3'b0,mixer_weight1,3'b0,mixer_weight2,3'b0,test6,3'b0,test5,
+			3'b0,test4,3'b0,test3,3'b0,test2,3'b0,test1}, // bits to output to hex display
+//			{3'b0,test7,3'b0,test6,3'b0,test5,3'b0,test4,3'b0,test3,
+//			3'b0,test2,3'b0,test1}, // bits to output to hex display
 		
 			disp_blank, disp_clock, disp_rs, disp_ce_b,
 			disp_reset_b, disp_data_out);
@@ -680,7 +699,8 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 	assign a_data=for_ac97_l;
 	// show volume during playback.
    // led is active low
-   assign led = ~{status[11:10],switch0, volume};
+//   assign led = ~{status[11:10],switch0, volume};
+	assign led = ~{status[11:10],fup, volume};
 //   assign led = ~{writemode,do_record,do_play, volume};
    VDM lights(.clock(clock_27mhz),.reset(reset),.ready(ready),
               .a_data(a_data[17:0]),.f_data(48'b0),.controls(1'b0),

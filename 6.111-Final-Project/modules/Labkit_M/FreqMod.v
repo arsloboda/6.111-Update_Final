@@ -254,13 +254,13 @@ module equalizer (
 			old_fup <= 0;
 			old_fdown <= 0;
 			weight_allpass <= 5'd24;
-			weight1 <= 5'd5;
-			weight2 <= 5'd5;
+			weight1 <= 5'd0;
+			weight2 <= 5'd0;
 			weight3 <= 5'd0;
 			weight4 <= 5'd0;
 			weight5 <= 5'd0;
 			weight6 <= 5'd0;
-			weight7 <= 5'd6;
+			weight7 <= 5'd0;
 		end
 
 		else begin

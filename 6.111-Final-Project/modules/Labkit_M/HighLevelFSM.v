@@ -60,9 +60,9 @@ module HighLevelFSM(
 						n_f_controls[7:0]<=controls[7:0];
 						f_controls[9:8]<=controls[14:13];
 						status[9:0]<=f_controls[9:0];
-						if(enter) begin
+//						if(enter) begin
 							f_controls[7:0]<=n_f_controls[7:0];
-						end
+//						end
 					end
 				t:
 					begin
@@ -78,9 +78,9 @@ module HighLevelFSM(
 						n_m_controls[7:0]<=controls[7:0];
 						m_controls[9:8]<=controls[14:13];
 						status[9:0]<=m_controls[9:0];
-						if(enter) begin
+//						if(enter) begin
 							m_controls[7:0]<=n_m_controls[7:0];
-						end
+//						end
 					end
 			endcase
 		end
