@@ -70,16 +70,16 @@ module mixer_buffer(
 	 assign weight2 = weight2_l;
 	 mixer mix_left(.audio_in1(audio_in_left1),.audio_in2(audio_in_left2),
 					.ready(ready),.clock(clock),.reset(reset),
-//					.freq1(freq1l),.freq2(freq2l),freq3(freq3l),.freq4(freq4l),
-//					.freq5(freq5l),.freq6(freq6l),
+					.freq1(freq1),.freq2(freq2),.freq3(freq3),.freq4(freq4),
+					.freq5(freq5),.freq6(freq6),
 					.controls(controls),.audio_out(audio_out_left),
 					.weight1(weight1_l),.weight2(weight2_l),
 					.fup(fupl),.fdown(fdownl));
 
 	 mixer mix_right(.audio_in1(audio_in_right1),.audio_in2(audio_in_right2),
 					.ready(ready),.clock(clock),.reset(reset),
-//					.freq1(freq1r),.freq2(freq2r),freq3(freq3r),.freq4(freq4r),
-//					.freq5(freq5r),.freq6(freq6r),
+					.freq1(freq1),.freq2(freq2),.freq3(freq3),.freq4(freq4),
+					.freq5(freq5),.freq6(freq6),
 					.controls(controls),.audio_out(audio_out_right),
 					.weight1(weight1_r),.weight2(weight2_r),
 					.fup(fupr),.fdown(fdownr));

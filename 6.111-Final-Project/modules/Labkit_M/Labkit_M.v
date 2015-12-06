@@ -622,9 +622,11 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 	wire do_play;
 	wire writemode;
 	
-	// mixer weights
+	// mixer data
 	wire [4:0] mixer_weight1;
 	wire [4:0] mixer_weight2;
+	wire mix1;
+	wire mix2;
 	
    //High Level FSM
 	HighLevelFSM HLFSM(.clock(clock_27mhz),.reset(reset),
@@ -651,16 +653,19 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 			 .test3(test3),.test4(test4),.test5(test5),.test6(test6),
 			 .test7(test7));
 
-	wire fup;
-	wire fdown;
+
+	
+   wire [19:0] tone;
+   tone750hz test_tone_750(.clock(clock_27mhz),.ready(ready),.pcm_data(tone));
+	
 	mixer_buffer mix_audio(.clock(clock_27mhz),.ready(ready),.reset(reset),
-				.audio_in_left1(process_out_l),.audio_in_left2(18'b0),
+				.audio_in_left1(process_out_l),.audio_in_left2({8'b0,tone[19:10]}),
 				// for the moment, pass audio into both sides of mixer
-				.audio_in_right1(process_out_r),.audio_in_right2(18'b0),
+				.audio_in_right1(process_out_r),.audio_in_right2({8'b0,tone[19:10]}),
 				.audio_out_left(for_ac97_l),.audio_out_right(for_ac97_r),
 				.controls(m_controls),.weight1(mixer_weight1),.freq_data(freq_data),
 				.weight2(mixer_weight2),
-				.fup(fup),.fdown(fdown));
+				.fup(mix2),.fdown(mix1));
 			 
 	wire [17:0] test_left;
 	wire [17:0] test_right;	
@@ -700,7 +705,7 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 	// show volume during playback.
    // led is active low
 //   assign led = ~{status[11:10],switch0, volume};
-	assign led = ~{status[11:10],fup, volume};
+	assign led = ~{status[11:10],mix1, volume};
 //   assign led = ~{writemode,do_record,do_play, volume};
    VDM lights(.clock(clock_27mhz),.reset(reset),.ready(ready),
               .a_data(a_data[17:0]),.f_data(48'b0),.controls(1'b0),
@@ -727,6 +732,95 @@ endmodule
 ///////////////////////////////////////////////////////////////////////////////
 /// Hex Display Module
 ///////////////////////////////////////////////////////////////////////////////
+
+module tone750hz (
+  input wire clock,
+  input wire ready,
+  output reg [19:0] pcm_data
+);
+   reg [8:0] index;
+
+   initial begin
+      index <= 8'h00;
+      // synthesis attribute init of index is "00";
+      pcm_data <= 20'h00000;
+      // synthesis attribute init of pcm_data is "00000";
+   end
+   
+   always @(posedge clock) begin
+      if (ready) index <= index+1;
+   end
+   
+   // one cycle of a sinewave in 64 20-bit samples
+   always @(index) begin
+      case (index[5:0])
+        6'h00: pcm_data <= 20'h00000;
+        6'h01: pcm_data <= 20'h0C8BD;
+        6'h02: pcm_data <= 20'h18F8B;
+        6'h03: pcm_data <= 20'h25280;
+        6'h04: pcm_data <= 20'h30FBC;
+        6'h05: pcm_data <= 20'h3C56B;
+        6'h06: pcm_data <= 20'h471CE;
+        6'h07: pcm_data <= 20'h5133C;
+        6'h08: pcm_data <= 20'h5A827;
+        6'h09: pcm_data <= 20'h62F20;
+        6'h0A: pcm_data <= 20'h6A6D9;
+        6'h0B: pcm_data <= 20'h70E2C;
+        6'h0C: pcm_data <= 20'h7641A;
+        6'h0D: pcm_data <= 20'h7A7D0;
+        6'h0E: pcm_data <= 20'h7D8A5;
+        6'h0F: pcm_data <= 20'h7F623;
+        6'h10: pcm_data <= 20'h7FFFF;
+        6'h11: pcm_data <= 20'h7F623;
+        6'h12: pcm_data <= 20'h7D8A5;
+        6'h13: pcm_data <= 20'h7A7D0;
+        6'h14: pcm_data <= 20'h7641A;
+        6'h15: pcm_data <= 20'h70E2C;
+        6'h16: pcm_data <= 20'h6A6D9;
+        6'h17: pcm_data <= 20'h62F20;
+        6'h18: pcm_data <= 20'h5A827;
+        6'h19: pcm_data <= 20'h5133C;
+        6'h1A: pcm_data <= 20'h471CE;
+        6'h1B: pcm_data <= 20'h3C56B;
+        6'h1C: pcm_data <= 20'h30FBC;
+        6'h1D: pcm_data <= 20'h25280;
+        6'h1E: pcm_data <= 20'h18F8B;
+        6'h1F: pcm_data <= 20'h0C8BD;
+        6'h20: pcm_data <= 20'h00000;
+        6'h21: pcm_data <= 20'hF3743;
+        6'h22: pcm_data <= 20'hE7075;
+        6'h23: pcm_data <= 20'hDAD80;
+        6'h24: pcm_data <= 20'hCF044;
+        6'h25: pcm_data <= 20'hC3A95;
+        6'h26: pcm_data <= 20'hB8E32;
+        6'h27: pcm_data <= 20'hAECC4;
+        6'h28: pcm_data <= 20'hA57D9;
+        6'h29: pcm_data <= 20'h9D0E0;
+        6'h2A: pcm_data <= 20'h95927;
+        6'h2B: pcm_data <= 20'h8F1D4;
+        6'h2C: pcm_data <= 20'h89BE6;
+        6'h2D: pcm_data <= 20'h85830;
+        6'h2E: pcm_data <= 20'h8275B;
+        6'h2F: pcm_data <= 20'h809DD;
+        6'h30: pcm_data <= 20'h80000;
+        6'h31: pcm_data <= 20'h809DD;
+        6'h32: pcm_data <= 20'h8275B;
+        6'h33: pcm_data <= 20'h85830;
+        6'h34: pcm_data <= 20'h89BE6;
+        6'h35: pcm_data <= 20'h8F1D4;
+        6'h36: pcm_data <= 20'h95927;
+        6'h37: pcm_data <= 20'h9D0E0;
+        6'h38: pcm_data <= 20'hA57D9;
+        6'h39: pcm_data <= 20'hAECC4;
+        6'h3A: pcm_data <= 20'hB8E32;
+        6'h3B: pcm_data <= 20'hC3A95;
+        6'h3C: pcm_data <= 20'hCF044;
+        6'h3D: pcm_data <= 20'hDAD80;
+        6'h3E: pcm_data <= 20'hE7075;
+        6'h3F: pcm_data <= 20'hF3743;
+      endcase // case(index[5:0])
+   end // always @ (index)
+endmodule
 
 module display_16hex (reset, clock_27mhz, data, 
 		disp_blank, disp_clock, disp_rs, disp_ce_b,
