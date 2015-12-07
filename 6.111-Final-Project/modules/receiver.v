@@ -1,0 +1,23 @@
+module receiver(
+    input clock_in,
+	 input reset,
+    input [11:0] l_audio_in,
+    input [11:0] r_audio_in,
+    output [17:0] l_audio_out,
+    output [17:0] r_audio_out
+    );
+	 reg [17:0] l_audio_out_n=0;
+	 reg [17:0] r_audio_out_n=0;
+	always@(negedge clock_in) begin
+		if(reset) begin
+			l_audio_out_n<=0;
+			r_audio_out_n<=0;
+		end else begin
+			l_audio_out_n<={l_audio_in,{6{l_audio_in[11]}}};
+			r_audio_out_n<={r_audio_in,{6{r_audio_in[11]}}};
+		end
+	end
+	assign l_audio_out=l_audio_out_n;
+	assign r_audio_out=r_audio_out_n;
+	
+endmodule
