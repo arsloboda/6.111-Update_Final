@@ -96,9 +96,9 @@ module mixer(
 			weighted_audio1 <= weight1*audio_in1;
 			weighted_audio2 <= weight2*audio_in2;
 			reg_mixed_audio <= weighted_audio1 + weighted_audio2;
-			a2_by_volume_a1 <= audio1_vcontrol*audio_in2;
-			a1_by_volume_a2 <= audio2_vcontrol*audio_in1;
-			a2_by_volume_a1bass <= freq1_vcontrol*audio_in2;
+			a2_by_volume_a1 <= 2*audio1_vcontrol*audio_in2;
+			a1_by_volume_a2 <= 2*audio2_vcontrol*audio_in1;
+			a2_by_volume_a1bass <= 2*freq1_vcontrol*audio_in2;
 			
 			if (ready) counter <= counter + 1;
 			

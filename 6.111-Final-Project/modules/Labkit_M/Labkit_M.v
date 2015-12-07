@@ -518,7 +518,7 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 
    // User I/Os
    //assign user1 = 32'hZ;
-   assign user2 = 32'hZ;
+   //assign user2 = 32'hZ;
    assign user3 = 32'hZ;
 //   assign user4 = 32'hZ;
 
@@ -640,7 +640,10 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
    audio a(clock_27mhz, reset, volume, from_ac97_data_l, for_ac97_l,from_ac97_data_r,for_ac97_r, ready,
 	       audio_reset_b, ac97_sdata_out, ac97_sdata_in,
 	       ac97_synch, ac97_bit_clock);
-	
+	wire [17:0] received_l;
+	wire [17:0] received_r;
+	receiver rec(.clock_in(user2[1]),.l_audio_in(user2[30:19]),.r_audio_in(user2[16:5]),
+					.l_audio_out(received_l),.r_audio_out(received_r),.reset(reset));
 	//Assign output data
 	ProcessMod process(.clock(clock_27mhz),.reset(reset),.ready(ready),
 			 .l_audio_in(from_ac97_data_l),.r_audio_in(from_ac97_data_r),
@@ -659,13 +662,13 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
    tone750hz test_tone_750(.clock(clock_27mhz),.ready(ready),.pcm_data(tone));
 	
 	mixer_buffer mix_audio(.clock(clock_27mhz),.ready(ready),.reset(reset),
-				.audio_in_left1(process_out_l),.audio_in_left2(process_out_l),
+				.audio_in_left1(process_out_l),.audio_in_left2(received_l),
 				// for the moment, pass audio into both sides of mixer
-				.audio_in_right1(process_out_r),.audio_in_right2(process_out_r),
+				.audio_in_right1(process_out_r),.audio_in_right2(received_r),
 				.audio_out_left(for_ac97_l),.audio_out_right(for_ac97_r),
 				.controls(m_controls),.weight1(mixer_weight1),.freq_data(freq_data),
 				.weight2(mixer_weight2),
-				.fup(mix2),.fdown(mix1));
+				.fup(mix1),.fdown(mix2));
 			 
 	wire [17:0] test_left;
 	wire [17:0] test_right;	
@@ -690,7 +693,7 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
 //			disp_reset_b, disp_data_out);
 	
 	display_16hex disp(reset, clock_27mhz,
-			{3'b0,mixer_weight1,3'b0,mixer_weight2,3'b0,test6,3'b0,test5,
+			{3'b0,mixer_weight2,3'b0,mixer_weight1,3'b0,test6,3'b0,test5,
 			3'b0,test4,3'b0,test3,3'b0,test2,3'b0,test1}, // bits to output to hex display
 //			{3'b0,test7,3'b0,test6,3'b0,test5,3'b0,test4,3'b0,test3,
 //			3'b0,test2,3'b0,test1}, // bits to output to hex display
