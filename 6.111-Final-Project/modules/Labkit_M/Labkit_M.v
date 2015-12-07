@@ -659,9 +659,9 @@ module Labkit_M   (beep, audio_reset_b, ac97_sdata_out, ac97_sdata_in, ac97_sync
    tone750hz test_tone_750(.clock(clock_27mhz),.ready(ready),.pcm_data(tone));
 	
 	mixer_buffer mix_audio(.clock(clock_27mhz),.ready(ready),.reset(reset),
-				.audio_in_left1(process_out_l),.audio_in_left2({8'b0,tone[19:10]}),
+				.audio_in_left1(process_out_l),.audio_in_left2(process_out_l),
 				// for the moment, pass audio into both sides of mixer
-				.audio_in_right1(process_out_r),.audio_in_right2({8'b0,tone[19:10]}),
+				.audio_in_right1(process_out_r),.audio_in_right2(process_out_r),
 				.audio_out_left(for_ac97_l),.audio_out_right(for_ac97_r),
 				.controls(m_controls),.weight1(mixer_weight1),.freq_data(freq_data),
 				.weight2(mixer_weight2),
