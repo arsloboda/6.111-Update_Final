@@ -1,0 +1,6 @@
+	wire [17:0] received_l;
+	wire [17:0] received_r;
+	reg [17:0] l_buf=0;
+	reg [17:0] r_buf=0;
+	receiver rec(.clock_in(user2[1]),.l_audio_in(user2[30:19]),.r_audio_in(user2[16:5]),
+					.l_audio_out(received_l),.r_audio_out(received_r),.reset(reset));
