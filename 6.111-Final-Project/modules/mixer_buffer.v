@@ -59,10 +59,7 @@ module mixer_buffer(
 	 assign freq4 = freq_data[7:0];
 	 assign freq5 = freq_data[7:0];
 	 assign freq6 = freq_data[7:0];
-	 
-	 // TODO: USE FREQUENCY DATA TO CONTROL VOLUME INSIDE MIXER BUFFER, NOT MIXER ITSELF
-	 // TODO: MAKE THIS SELECTABLE (E.G. DO OR DON'T BEAT VOLUME TO BASS ... 2 LOWEST FILTERS)
-	 
+	  
 	 assign fup = fupl;
 	 assign fdown = fdownl;
 	 
