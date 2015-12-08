@@ -1,23 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    11:26:52 11/09/2015 
-// Design Name: 
-// Module Name:    TimeMod 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module TimeMod(
     input signed [17:0] l_audio_in,
 	 input signed [17:0] r_audio_in,
@@ -28,24 +9,34 @@ module TimeMod(
     output signed [17:0] l_audio_out,
 	 output signed [17:0] r_audio_out
     );
+    //Echo variables
 	wire e_d;
 	wire e_u;
 	reg old_e_d =0;
 	reg old_e_u =0;
+	//Output of BRAM 
 	wire signed [17:0] l_echo_out;
 	wire signed [17:0] r_echo_out;
+	//Echo signal being applied to input
 	reg signed [22:0] l_echo_effect=0;
 	reg signed [22:0] r_echo_effect=0;
+	//Contains either echo signal or all zeros, is added to input
 	wire signed [17:0] l_effect;
 	wire signed [17:0] r_effect;
+	//Signal being added to output of BRAM, for 'reverse' echo
 	wire signed [17:0] l_forward;
 	wire signed [17:0] r_forward;
+	//Final signal input into BRAM
 	reg signed [17:0] l_echo_in=0;
 	reg signed [17:0] r_echo_in=0;
+	//Echo attenuation factor
 	reg [4:0] echo_factor=5'd14;
+	//Counters to implement delay
 	reg [13:0] e_count=0;
 	reg [13:0] old_e_count=0;
+	//Write enable for BRAM
 	reg wenable=0;
+	//Control echo attenuation with L+R buttons
 	assign e_d = controls[9];
 	assign e_u = controls[8];
 	echo echo75ms(.clka(clock),.clkb(clock),.dina({l_echo_in,r_echo_in}),
