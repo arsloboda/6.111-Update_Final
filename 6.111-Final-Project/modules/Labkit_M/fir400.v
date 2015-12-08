@@ -18,7 +18,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module fir400( // DEFINITELY need 27 MHz clock to handle 48 kHz, and be able to handle each new sample in our own project
+module fir400( // 27 MHz clock, ready asserted with frequency of 48 kHz
   input wire clock,reset,ready,
   input wire signed [9:0] coeff,
   input wire signed [17:0] x,
@@ -31,39 +31,35 @@ module fir400( // DEFINITELY need 27 MHz clock to handle 48 kHz, and be able to 
 	reg signed [27:0] accumulator; 
 	reg signed [17:0] sample [511:0];  // 512 element array each 8 bits wide
 	reg [8:0] offset = 0; // increment offset with each sample to always point to the newest sample
-	//reg [4:0] index = 0;
-	// carefully chose sample width, offset, & index to be powers of 2 to handle circular counting
-//	wire signed [9:0] coeff;
-//	coeffs31 coeffs(.index(index),.coeff(coeff));
 	
 	always @(posedge clock) begin
-		//audio_out <= x; // MAKE SURE THIS STILL WORKS AS IS
 		if (reset == 1) begin
 			accumulator <= 0;
 			index <= 0;
 			offset <= 0;
 		end
-		else if (ready == 1) begin //essentially, reset accumulator to begin calculations
+		else if (ready == 1) begin // reset accumulator to begin calculations for new audio sample
 			accumulator <= 0;
 			offset <= offset +1; 
 			index <= 0;
-			//audio_out <= x;
 			sample[(offset+1) & 5'b1111_1] <= x;
-			// need to rotate through pointer in sample reg to pick appropriate sample to add
 		end
-//		
-		else if (index<401) begin // perform filter multiplication and addition over 32 cycles
+// 		pipeline to perform FIR 401-tap filter multiplication and addition over 401 cycles 
+		else if (index<401) begin 
 			accumulator <= accumulator + coeff*sample[(offset-index)& 5'b1111_1]; // delay 1
 			index <= index + 1;
-			//audio_out <= x;
 		end
 		else begin
-			//audio_out <= x;
 			audio_out <= accumulator[27:10];
 		end
 		
 	end
 endmodule
+
+//////////////////////////////////////////////////////////////////////////////////////////
+/// coefficients for the 401-tap FIR filters stored in ROM for the various filters
+//////////////////////////////////////////////////////////////////////////////////////////
+
 
 module coeffs400tap_test(
   input wire [8:0] index,
@@ -480,7 +476,6 @@ endmodule
 
 	 
 
-// TODO: edit to be 401 tap filter coefficients vs.31 tap filter coefficients
 module coeffs400tap_below120Hz(
   input wire [8:0] index,
   output reg signed [9:0] coeff
@@ -895,7 +890,7 @@ module coeffs400tap_below120Hz(
     endcase
 endmodule
 
-// NOT A GOOD WAY TO BUILD AN ALL PASS FILTER
+// not the best way to build an all pass filter
 module coeffs_allpass(
   input wire [8:0] index,
   output reg signed [9:0] coeff
