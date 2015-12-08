@@ -228,6 +228,7 @@ module equalizer (
 		end
 
 		else begin
+			// calculate weighted frequency band volumes to be used in the weighted sum of the equalizer
 			weighted_freq1 <= weight1*full_freq1;
 			weighted_freq2 <= weight2*full_freq2;
 			weighted_freq3 <= weight3*full_freq3;
@@ -236,10 +237,11 @@ module equalizer (
 			weighted_freq6 <= weight6*full_freq6;
 			weighted_freq7 <= weight7*full_freq7; // used for the all pass filter frequency data
 
+			// calculate equalizer output
 			reg_audio_out <= audio_allpass+weighted_freq1+weighted_freq2+weighted_freq3
 									+weighted_freq4+weighted_freq5+weighted_freq6;
 			
-			// increase/decrease weight of the various filters
+			// update weight of the various filters
 			if(switches[0]) begin // control weight of low pass filter
 				if (increment & weight1 != 5'd31) weight1 <= weight1+1;       
 				if (decrement & weight1 != 5'd0) weight1 <= weight1-1;       
@@ -277,7 +279,7 @@ module equalizer (
 
 		end
 		
-		// detect button press and increase/decrease weight of all relevant filters when the associated switch is asserted
+		// left and right button presses increase/decrease weight of all filters whose associated switch is asserted
 		increment <= 0;
 		decrement <= 0;
 		if (fup & ~old_fup) increment <= 1;       
