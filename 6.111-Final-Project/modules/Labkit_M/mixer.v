@@ -18,6 +18,8 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
+/// Mixer Module: take 2 audio inputs and output mixed signal selectable by user
+/////////////////////////////////////////////////////////////////////////////////
 module mixer(
     input signed [17:0] audio_in1,
     input signed [17:0] audio_in2,
@@ -40,11 +42,10 @@ module mixer(
 	 
 	parameter MAX_WEIGHT = 5'd31;
 	wire [7:0] switches = controls[7:0];
-//	wire fup = controls[8];
-//	wire fdown = controls[9];	
 	assign fup = controls[8];
 	assign fdown = controls[9];	
 	
+	// assign regs to enable mutual volume control of songs
 	wire signed [17:0] mixed_audio;
 	reg signed [22:0] reg_mixed_audio;
 	reg signed [22:0] weighted_audio1;
@@ -61,19 +62,16 @@ module mixer(
 	reg signed [17:0] reg_audio_out;
 	assign audio_out = reg_audio_out;
 	assign mixed_audio = reg_mixed_audio[22:5];
-//	assign audio_out = audio_in1; // test pass through
 	
 	wire signed [17:0] wire_weighted_audio1;
 	wire signed [17:0] wire_weighted_audio2;
 	wire signed [17:0] wire_a2_by_volume_a1;
 	wire signed [17:0] wire_a1_by_volume_a2;
 	wire signed [17:0] wire_a2_by_volume_a1bass;
-//	wire signed [17:0] wire_volume_audio2bass;
 	
 	assign wire_weighted_audio1 = weighted_audio1[22:5];
 	assign wire_weighted_audio2 = weighted_audio2[22:5];
 	assign wire_a2_by_volume_a1bass = a2_by_volume_a1bass[22:5];
-//	assign wire_volume_audio2bass = volume_audio2bass[22:5];
 	assign wire_a2_by_volume_a1 = a2_by_volume_a1[22:5];
 	assign wire_a1_by_volume_a2 = a1_by_volume_a2[22:5];
 	
@@ -84,14 +82,13 @@ module mixer(
 		if (reset) begin
 			old_fup <= 0;
 			old_fdown <= 0;
-//			weight1 <= 5'd1;
-//			weight2 <= 5'd1;
-			weight1 <= 5'd16; // centered
+			weight1 <= 5'd16; // centered (weight of the two audio signals is approximately equal)
 			weight2 <= 5'd31-weight1;
 			counter <= 0;
 		end
 	
 		else begin
+			// calculate possible outputs of mixer
 			weight2 <= 5'd31-weight1;
 			weighted_audio1 <= weight1*audio_in1;
 			weighted_audio2 <= weight2*audio_in2;
@@ -100,23 +97,24 @@ module mixer(
 			a1_by_volume_a2 <= 2*audio2_vcontrol*audio_in1;
 			a2_by_volume_a1bass <= 2*freq1_vcontrol*audio_in2;
 			
-			if (ready) counter <= counter + 1;
+			if (ready) counter <= counter + 1; // used to slow down the volume change of the song so that it is not too choppy
 			
 			if (counter == 0) begin
+				// control audio 2 volume w/ audio 1 volume
 				if(audio_in1[17] == 0) begin
 					if (audio_in1[16:12] > 5'd8) begin
 						audio1_vcontrol <= audio_in1[16:12];
 					end
 					else audio1_vcontrol <= 5'd8;
 				end
-				
+				// control audio 1 volume w/ audio 2 volume
 				if(audio_in2[17] == 0) begin
 					if (audio_in2[16:12] > 5'd8) begin
 						audio2_vcontrol <= audio_in2[16:12];
 					end
 					else audio2_vcontrol <= 5'd8;
 				end
-				
+				// control audio 2 volume w/ audio 1 bass volume
 				if(freq1[7] == 0) begin
 					if (freq1[6:2] > 5'd8) begin
 						freq1_vcontrol <= freq1[6:2];
@@ -125,6 +123,7 @@ module mixer(
 				end
 			end
 			
+			// use left and right switches to control the relative weight of audio 1 and audio 2 in the mixer
 			if (fup & ~old_fup & (weight1 != 5'd31)) weight1 <= weight1+1;       
 			if (fdown & ~old_fdown & (weight1 != 5'd0)) weight1 <= weight1-1;     
 			old_fup <= fup;
@@ -134,8 +133,12 @@ module mixer(
 		
 	end
 	
-
-
+	// select output of mixer (selectable by user via switches on the labkit)
+	// switch0: just audio 1
+	// switch1: just audio 2
+	// switch2: audio 1 volume controlled by the volume of audio 2
+	// switch3: audio 2 volume controlled by the volume of audio 1
+	// switch4: audio 2 volume controlled by the volume of audio 1 bass frequency data
 	always@(*) begin
 		case(switches)
 			8'b0000_0001: reg_audio_out = wire_weighted_audio1; 
