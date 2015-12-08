@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module mixer_buffer(
-    input clock,
-    input ready,
+    input clock, // 27 MHz clock
+    input ready, // asserted with frequency of 48 kHz, receive new 18-bit audio on ready pulse
     input reset,
     input [17:0] audio_in_left1,
 	 input [17:0] audio_in_left2,
@@ -35,7 +35,7 @@ module mixer_buffer(
 	 output fup,
 	 output fdown
     );
-	 
+	 // 8 bits of frequency data from audio 1 input, used to control volume of audio 2 when selected
 	 wire [7:0] freq1;
 	 wire [7:0] freq2;
 	 wire [7:0] freq3;
@@ -60,11 +60,14 @@ module mixer_buffer(
 	 assign freq5 = freq_data[7:0];
 	 assign freq6 = freq_data[7:0];
 	  
+	 // left and right buttons used to control weights of mixed audio signals, uniform to both left and right audio
 	 assign fup = fupl;
 	 assign fdown = fdownl;
-	 
+	 // weights of the mixed audio signals, uniform to both left and right audio
 	 assign weight1 = weight1_l;
 	 assign weight2 = weight2_l;
+	 
+	 // Instantiate mixer modules for both left and right stereo audio data.
 	 mixer mix_left(.audio_in1(audio_in_left1),.audio_in2(audio_in_left2),
 					.ready(ready),.clock(clock),.reset(reset),
 					.freq1(freq1),.freq2(freq2),.freq3(freq3),.freq4(freq4),
