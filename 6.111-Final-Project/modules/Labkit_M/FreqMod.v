@@ -72,7 +72,7 @@ module FreqMod(
 	assign freq6 = weighted_freq6[17:10];
 	assign freq7 = weighted_freq_allpass[17:10];
 	
-	// input correct coefficient for the various filters given the specified index
+	// input correct coefficient for the various filters given by the specified index
 	wire signed [9:0] coeff_allpass;
 	wire signed [9:0] coeff1;
 	wire signed [9:0] coeff2;
@@ -143,12 +143,13 @@ equalizer equalize(.ready(ready),.clock(clock),.reset(reset),
 					.weighted_freq7(weighted_freq_allpass));
 
 ///////////////////////////////////////////////////////////////////////
-// controls
+// controls: select output to be one of the weighted frequency bands, the original signal, or the output of the mixer
 	
 	reg signed [17:0] reg_audio_out;
 	assign audio_out = reg_audio_out;
 	always@(*) begin
-		case(switches) // select which frequency band to play; default to play the weighted summed output of the equalizer
+		// select which frequency band to play; default to play the weighted summed output of the equalizer
+		case(switches) 
 			8'b0000_0001: reg_audio_out = weighted_freq1; 
 			8'b0000_0010: reg_audio_out = weighted_freq2;
 			8'b0000_0100: reg_audio_out = weighted_freq3;
