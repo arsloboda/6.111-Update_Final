@@ -1,23 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    12:00:08 11/09/2015 
-// Design Name: 
-// Module Name:    HighLevelFSM 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module HighLevelFSM(
     input clock,
     input reset,
@@ -27,12 +8,16 @@ module HighLevelFSM(
 	 output reg [9:0] m_controls =0,
 	 output reg [11:0] status =0
     );
+    	//Inititate state variables
 	 reg [1:0] state=0;
 	 reg [1:0] f = 0;
 	 reg [1:0] t = 1;
 	 reg [1:0] m = 2;
+	 //Enter acts as a special control signal within HLFSM
 	 wire enter;
 	 assign enter = controls[12];
+	 //Controls sent to individual modules
+	 //f=frequency, t=time, m=mixer
 	 reg [7:0] n_f_controls = 0;
 	 reg [7:0] n_t_controls = 0;
 	 reg [7:0] n_m_controls = 0;
@@ -46,6 +31,7 @@ module HighLevelFSM(
 			n_m_controls<=0;
 			state<=0;
 			status<=0;
+		//State controlled by pressing number buttons 3-1
 		end else if(controls[11]) begin
 			state<=f;
 		end else if(controls[10]) begin
@@ -54,6 +40,7 @@ module HighLevelFSM(
 			state<=m;
 		end else begin
 			status[11:10]<=state;
+			//Assign controls based on state
 			case(state)
 				f:
 					begin
