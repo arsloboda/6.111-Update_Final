@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-module fir_programmable( // DEFINITELY need 27 MHz clock to handle 48 kHz, and be able to handle each new sample in our own project
+module fir_programmable( // 27 MHz clock to handle, ready asserted with frequency of 48 kHz
   input wire clock,reset,ready,
   input wire signed [9:0] coeff,
   input wire signed [17:0] x,
@@ -30,36 +30,28 @@ module fir_programmable( // DEFINITELY need 27 MHz clock to handle 48 kHz, and b
 	reg signed [17:0] audio_out;
 	assign y = audio_out;
 	reg signed [27:0] accumulator; 
-	reg signed [17:0] sample [255:0];  // 32 element array each 8 bits wide
+	reg signed [17:0] sample [255:0];  // 255 element array each 18 bits wide
 	reg [7:0] offset = 0; // increment offset with each sample to always point to the newest sample
-	//reg [4:0] index = 0;
-	// carefully chose sample width, offset, & index to be powers of 2 to handle circular counting
-//	wire signed [9:0] coeff;
-//	coeffs31 coeffs(.index(index),.coeff(coeff));
+
 	
 	always @(posedge clock) begin
-		//audio_out <= x; // MAKE SURE THIS STILL WORKS AS IS
 		if (reset == 1) begin
 			accumulator <= 0;
 			index <= 0;
 			offset <= 0;
 		end
-		else if (ready == 1) begin //essentially, reset accumulator to begin calculations
+		else if (ready == 1) begin // reset accumulator to begin calculations every time we get a new audio sample
 			accumulator <= 0;
 			offset <= offset +1; 
 			index <= 0;
-			//audio_out <= x;
-			sample[(offset+1) & 5'b1111_1] <= x;
-			// need to rotate through pointer in sample reg to pick appropriate sample to add
+			sample[(offset+1) & 5'b1111_1] <= x; // rotate through pointer in sample reg to pick appropriate sample to add
 		end
 //		
-		else if (index<255) begin // perform filter multiplication and addition over 32 cycles
-			accumulator <= accumulator + coeff*sample[(offset-index)& 5'b1111_1]; // delay 1
+		else if (index<255) begin // pipeline to perform filter multiplication and addition over 255 cycles
+			accumulator <= accumulator + coeff*sample[(offset-index)& 5'b1111_1]; 
 			index <= index + 1;
-			//audio_out <= x;
 		end
 		else begin
-			//audio_out <= x;
 			audio_out <= accumulator[27:10];
 		end
 		
@@ -67,60 +59,12 @@ module fir_programmable( // DEFINITELY need 27 MHz clock to handle 48 kHz, and b
 endmodule
 
 
-//
-//module fir_programmable(
-//  input wire clock,reset,ready,
-//  input wire signed [9:0] coeff,
-//  input wire signed [17:0] x,
-//  output wire signed [17:0] y,
-//  output reg [4:0] index
-//    );
-//
-//
-//	reg signed [17:0] audio_out;
-//	assign y = audio_out;
-//	reg signed [27:0] accumulator; 
-//	reg signed [17:0] sample [255:0];  // 255 element array each 18 bits wide
-//	reg [7:0] offset = 0; // 255 samples
-//
-//	
-//	always @(posedge clock) begin
-//		//if (ready) y <= x; // test audio in, audio out
-//		if (reset == 1) begin
-//			accumulator <= 0;
-//			index <= 0;
-//			audio_out <= 0;
-//			offset <= 0;
-//		end
-//		else if (ready == 1) begin //essentially, reset accumulator to begin calculations
-//			//audio_out <= x;
-//			accumulator <= 0;
-//			offset <= offset +1; 
-//			index <= 0;
-//			sample[offset+1] <= x;
-//			// need to rotate through pointer in sample reg to pick appropriate sample to add
-//		end
-////		
-//		else if (index<31) begin // perform filter multiplication and addition over 32 cycles
-//			accumulator <= accumulator + coeff*sample[offset-index]; // delay 1
-//			index <= index + 1;
-//			//audio_out <= x;
-//		end
-//		else begin
-//				audio_out <= accumulator[17:0];
-//				//audio_out <= x;
-//		end
-//		
-//	end
-//endmodule
-//	
-
 
 module coeffs_replay(
   input wire [7:0] index,
   output reg signed [9:0] coeff
 );
-  // tools will turn this into a 41x10 ROM
+  // tools will turn this into a 255x10 ROM
   always @(index)
     case (index)
 	 
@@ -384,12 +328,12 @@ module coeffs_replay(
 endmodule
 
 
-module coeffs255tap_below180( // gonna be a problem cuz can only do up to 511 absolute value with 10 bits
+module coeffs255tap_below180( 
   input wire [5:0] index,
   output reg signed [9:0] coeff
 );
 
-  // tools will turn this into a 41x10 ROM
+  // tools will turn this into a 255x10 ROM
   always @(index)
     case (index)
 
@@ -653,11 +597,11 @@ module coeffs255tap_below180( // gonna be a problem cuz can only do up to 511 ab
     endcase
 endmodule
 
-module coeffs255tap_allpass( // gonna be a problem cuz can only do up to 511 absolute value with 10 bits
+module coeffs255tap_allpass( 
   input wire [5:0] index,
   output reg signed [9:0] coeff
 );
-  // tools will turn this into a 41x10 ROM
+  // tools will turn this into a 255x10 ROM
   always @(index)
     case (index)
 	 
