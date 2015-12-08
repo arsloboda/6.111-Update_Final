@@ -1,23 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date:    16:54:13 11/23/2015 
-// Design Name: 
-// Module Name:    VDM 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
 module VDM(
     input [47:0] f_data,
 	 input [17:0] a_data,
@@ -27,10 +8,15 @@ module VDM(
 	 input controls,
     output [29:0] lights
     );
+    	//Average volume over 32 samples
 	 wire [20:0] average;
+	 //Buffer array for lights
 	 reg [30:0] out=0;
+	 //Buffer for average volume
 	 reg [5:0] audio=0;
+	 //Space out samples using a counter
 	 reg [5:0] count=0;
+	 //Set up 32 6 bit arrays to store volume samples
 	 reg [5:0] a1[31:0];
 	 always@(posedge clock) begin
 		if (reset) begin
@@ -92,5 +78,6 @@ module VDM(
 							+a1[14]+a1[15]+a1[16]+a1[17]+a1[18]+a1[19]
 							+a1[20]+a1[21]+a1[22]+a1[23]+a1[24]+a1[25]
 							+a1[26]+a1[27]+a1[28]+a1[29]+a1[30]+a1[31])>>4;
+	 //Assign output lights array continously to created output
 	 assign lights=out[29:0];
 endmodule
