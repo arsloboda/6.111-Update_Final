@@ -29,7 +29,7 @@ module fir400( // 27 MHz clock, ready asserted with frequency of 48 kHz
 	reg signed [17:0] audio_out;
 	assign y = audio_out;
 	reg signed [27:0] accumulator; 
-	reg signed [17:0] sample [511:0];  // 512 element array each 8 bits wide
+	reg signed [17:0] sample [511:0];  // 512 element array each 18 bits wide
 	reg [8:0] offset = 0; // increment offset with each sample to always point to the newest sample
 	
 	always @(posedge clock) begin
