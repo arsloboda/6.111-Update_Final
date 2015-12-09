@@ -59,10 +59,10 @@ module music_flash_memory(
 	reg [15:0] wdata;
 	reg dowrite;
 	reg [22:0] raddr; // address of where we want to read from flash (playing from flash)
-	//wire [15:0] frdata; // data output from flash that we want to play, need to tack on 2 LSBs
+	//wire [15:0] frdata; // data output from flash that we want to play, need to add 2 LSBs
 	reg doread; // tell flash to read from memory
-	wire busy; // flash says don't try to read or write right now
-	wire [11:0] fsmstate; // don't need for my purposes
+	wire busy; // flash is busy, don't read/write when asserted
+	wire [11:0] fsmstate; 
 	
 	//assign wdata = audio_in[17:2];
 	//assign dowrite = do_record;
@@ -111,14 +111,9 @@ module music_flash_memory(
 						test2 <= 1;
 						
 						do_record <= 0;
-						//do_play <= 0;
-	//					if (test_counter < 19'd524000) begin
-	//						test_counter2 <= test_counter2 +1;
-							do_play <= 1;
-						//end
+						do_play <= 1;
 					end
 					
-					// do I want this inside ready?
 					if (do_record) begin
 						//do_play <= 0;
 						writemode <= 1;
@@ -126,11 +121,10 @@ module music_flash_memory(
 						doread <= 0;
 						wdata <= left_audio_in[17:2];
 						reg_left_audio_out <= 16'b0;
-					// do I want this inside ready?
-					end else if (do_play) begin // potentially bad if both do_record & do_play are high???
+					end else if (do_play) begin 
 						writemode <= 0;
 						if (raddr == memory_counter) raddr <= 0;
-						else raddr <= raddr + 1; // can I just increment by 1?  Or does raddr increment by more?
+						else raddr <= raddr + 1; 
 						doread <= 1;
 						dowrite <= 0;
 						reg_left_audio_out <= frdata;
@@ -138,10 +132,8 @@ module music_flash_memory(
 				end
 				// if not new data with read pulse
 				else if (dowrite) begin
-//					if (busy == 0) begin // if flash not busy, you can actually write to the flash
 						dowrite <= 0;
 						memory_counter <= memory_counter +1;
-//					end
 				end
 				
 				else if (doread) begin
@@ -153,21 +145,5 @@ module music_flash_memory(
 		end
 	end
 	
-
-
-//writemode: if true then we're in write mode, else we're in read mode
-//wdata: data to be written
-//dowrite: putting this high tells the manager the data it has is new, write it
-//[22:0] raddr: address to read from
-// [15:0] frdata: data being read
-//[15:0] rdata;
-//doread: putting this high tells the manager to perform a read on the current address
-//busy: output to tell folks we're still working on the last thing
-
-//	inout [15:0] flash_data;					//direct passthrough from labkit to low-level modules (flash_int and test_fsm)
-//   output [23:0] flash_address;
-//    output flash_ce_b, flash_oe_b, flash_we_b;
-//    output flash_reset_b, flash_byte_b;
-//    input  flash_sts;
 
 endmodule
